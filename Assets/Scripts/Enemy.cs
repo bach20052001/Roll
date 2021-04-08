@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public static int countEnemyDied = 0;
     private Rigidbody rb;
     private GameObject player;
-    private float speed = 3f;
+    private float speed;
+
+    [SerializeField] private GameConfiguration configuration;
+
     // Start is called before the first frame update
     void Start()
     {
+        speed = configuration.enemySpeed;
+
         rb = GetComponent<Rigidbody>();
         player = GameObject.Find("Player");
     }
@@ -18,12 +22,15 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (transform.position.y < -10f)
+        if (GameManager.Instance.GameState == GameBaseState.PLAY)
         {
-            Destroy(this.gameObject);
-            countEnemyDied++;
+            if (transform.position.y < -5f)
+            {
+                this.PostEvent(GameEvent.OnEnemyFall, null);
+                Destroy(this.gameObject);
+            }
+            Vector3 direction = (player.transform.position - transform.position).normalized;
+            rb.AddForce(direction * speed);
         }
-        Vector3 direction = (player.transform.position - transform.position).normalized;
-        rb.AddForce(direction * speed);
     }
 }

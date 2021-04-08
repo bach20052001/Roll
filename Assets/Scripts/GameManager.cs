@@ -1,20 +1,51 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject popUp;
+    private static GameManager instance;
+
+    public static GameManager Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
+
+    public GameBaseState GameState;
+
+    public void TransitionState(GameBaseState newGameState)
+    {
+        switch (newGameState)
+        {
+            case GameBaseState.PREPLAY:
+                break;
+            case GameBaseState.PLAY:
+                break;
+            case GameBaseState.GAMEOVER:
+                break;
+        }
+        GameState = newGameState;
+    }
 
     void Start()
     {
-        popUp.SetActive(false);
+        if (instance == null)
+        {
+            instance = this;
+        }
+
+        if (this != instance)
+        {
+            Destroy(gameObject);
+        }
+        TransitionState(GameBaseState.PLAY);
+        this.RegisterListener(GameEvent.OnPlayerFall, (param) => OnPlayerFallHandler());
     }
 
-    void Update()
+    private void OnPlayerFallHandler()
     {
-        if (PlayerController.instace.isOver)
-        {
-            popUp.SetActive(true);
-            SpawnManager.instace.enabled = false;
-        }
+        TransitionState(GameBaseState.GAMEOVER);
     }
 }

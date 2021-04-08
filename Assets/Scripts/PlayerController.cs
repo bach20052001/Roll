@@ -4,24 +4,32 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody rb;
-    private float speed = 3f;
-    private float boost = 2f;
+    private RotateCamera focalPoint;
+    [SerializeField] private GameConfiguration configuration;
+
+    private float speed;
+    private float forceToEnemy;
+
     public GameObject indicatorPowerUp;
     private bool hasPowerup;
-    public bool isOver { get; set; }
 
-    public static PlayerController instace;
+    private static PlayerController instance;
 
-    public static PlayerController Instance()
+    public static PlayerController Instance
     {
-        if (instace == null) 
-            return new PlayerController();
-        return instace;
+        get
+        {
+            return instance;
+        }
     }
 
     void Start()
     {
-        instace = GetComponent<PlayerController>();
+        speed = configuration.speed;
+        forceToEnemy = configuration.forceToEnemy;
+
+        focalPoint = FindObjectOfType<RotateCamera>();
+        instance = GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody>();
     }
     IEnumerator Powerup()
@@ -34,30 +42,38 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
-        if (transform.position.y < -10)
+        if (transform.position.y < -5f)
         {
-            isOver = true;
+            this.PostEvent(GameEvent.OnPlayerFall, null);
         }
-        float verticalInput = Input.GetAxis("Vertical");
-        indicatorPowerUp.transform.position = transform.position;
-        //Note : AddForce(Direction * Force);
-        rb.AddForce(GameObject.Find("FocalPoint").transform.forward * speed * verticalInput);
+
+
+        if (GameManager.Instance.GameState == GameBaseState.PLAY)
+        {
+            float verticalInput = Input.GetAxis("Vertical");
+            indicatorPowerUp.transform.position = transform.position;
+            rb.AddForce(focalPoint.gameObject.transform.forward * speed * verticalInput);
+        }
     }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("PowerUp"))
         {
+            speed = configuration.speed_powerup;
+            forceToEnemy = configuration.forceToEnemy_powerup;
             Destroy(other.gameObject);
             StartCoroutine(nameof(Powerup));
         }
     }
+
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.CompareTag("Enemy") && hasPowerup)
+        if (collision.collider.CompareTag("Enemy"))
         {
             GameObject enemy = collision.collider.gameObject;
             Vector3 direction = enemy.transform.position - transform.position;
-            enemy.GetComponent<Rigidbody>().AddForce(direction * speed * boost, ForceMode.Impulse);
+            enemy.GetComponent<Rigidbody>().AddForce(direction * forceToEnemy, ForceMode.Impulse);
         }
     }
 }

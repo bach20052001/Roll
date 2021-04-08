@@ -11,7 +11,6 @@ public class Score : MonoBehaviour
 
     void Update()
     {
-        score = (Enemy.countEnemyDied);
         GetComponent<Text>().text = score.ToString();
     }
 }
