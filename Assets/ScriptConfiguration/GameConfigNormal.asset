@@ -16,4 +16,4 @@ MonoBehaviour:
   forceToEnemy: 2
   speed_powerup: 3
   forceToEnemy_powerup: 7.5
-  enemySpeed: 3
+  enemySpeed: 2
